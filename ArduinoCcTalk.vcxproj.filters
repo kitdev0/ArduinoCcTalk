@@ -1,0 +1,69 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\hw_module">
+      <UniqueIdentifier>{25bd4693-674c-4c74-b31e-2300f15f108e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sw_module">
+      <UniqueIdentifier>{b4975849-9b56-4bd7-b00b-9027e30aa079}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hw_module">
+      <UniqueIdentifier>{86c085d0-0108-48c2-895a-88cdbb399e8d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\sw_module">
+      <UniqueIdentifier>{cfff26c8-6569-4c87-b359-af106e8d421b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ArduinoCcTalk.ino" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="__vm\.ArduinoCcTalk.vsarduino.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="hm_cctalk_device_v202.h">
+      <Filter>Header Files\hw_module</Filter>
+    </ClInclude>
+    <ClInclude Include="hm_cctalk_v201.h">
+      <Filter>Header Files\hw_module</Filter>
+    </ClInclude>
+    <ClInclude Include="hm_mini_coffee_rev1_pin_define.h">
+      <Filter>Header Files\hw_module</Filter>
+    </ClInclude>
+    <ClInclude Include="sm_debug_v102.h">
+      <Filter>Header Files\sw_module</Filter>
+    </ClInclude>
+    <ClInclude Include="sm_timeout.h">
+      <Filter>Header Files\sw_module</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="hm_7seg_shift_v201.cpp">
+      <Filter>Source Files\hw_module</Filter>
+    </ClCompile>
+    <ClCompile Include="hm_cctalk_device_v202.cpp">
+      <Filter>Source Files\hw_module</Filter>
+    </ClCompile>
+    <ClCompile Include="hm_cctalk_v201.cpp">
+      <Filter>Source Files\hw_module</Filter>
+    </ClCompile>
+    <ClCompile Include="sm_debug_v102.cpp">
+      <Filter>Source Files\sw_module</Filter>
+    </ClCompile>
+    <ClCompile Include="sm_timeout.cpp">
+      <Filter>Source Files\sw_module</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
