@@ -1,7 +1,7 @@
 //############################################################################//
 //----------------Standard Message Packets, Simple checksum-------------------//
 //
-//  For a payload of N data bytes…
+//  For a payload of N data bytesï¿½
 //      [ Destination Address ]
 //      [ No. of Data Bytes ]
 //      [ Source Address ]
@@ -11,7 +11,7 @@
 //      [ Data N ]
 //      [ Checksum ]
 //
-//  For a simple command or request with no data bytes…
+//  For a simple command or request with no data bytesï¿½
 //      [ Destination Address ]
 //      [ 0 ]
 //      [ Source Address ]
@@ -22,26 +22,26 @@
 //          For example, the message [ 1 ] [ 0 ] [ 2 ] [ 0 ] would be followed
 //      by the checksum [ 253 ] because 1 + 0 + 2 + 0 + 253 = 256 = 0.
 //############################################################################//
-#include "hm_cctalk_v201.h"
+#include "ArduinoCctalk.h"
 
-HM_CCTALK::HM_CCTALK()
+ARDUINO_CCTALK::ARDUINO_CCTALK()
 {
 #ifdef _CCTALK_DEBUG
-	logDebug = new SM_DEBUG(F("CCTALK"));
+	logDebug = new ARDUINO_DEBUG(F("CCTALK"));
 #endif // _CCTALK_DEBUG
 }
 
-HM_CCTALK::~HM_CCTALK()
+ARDUINO_CCTALK::~ARDUINO_CCTALK()
 {
 #ifdef _CCTALK_DEBUG
 	delete logDebug;
 #endif // _CCTALK_DEBUG
-	delete serial_port;
+	// delete serial_port;
 }
 
 // private:
 
-void HM_CCTALK::debug(String data)
+void ARDUINO_CCTALK::debug(String data)
 {
 #ifdef _CCTALK_DEBUG
 #if _CCTALK_DEBUG == _DEBUG_SAY_ONLY
@@ -54,12 +54,12 @@ void HM_CCTALK::debug(String data)
 #endif
 }
 
-void HM_CCTALK::timeoutReset(void)
+void ARDUINO_CCTALK::timeoutReset(void)
 {
 	previous_time = millis();
 }
 
-bool HM_CCTALK::timeoutCheck(uint32_t _time)
+bool ARDUINO_CCTALK::timeoutCheck(uint32_t _time)
 {
 	if (millis() < previous_time)
 		timeoutReset();
@@ -71,7 +71,7 @@ bool HM_CCTALK::timeoutCheck(uint32_t _time)
 }
 
 //  public:
-void HM_CCTALK::init(HardwareSerial *_port)
+void ARDUINO_CCTALK::init(HardwareSerial *_port)
 {
 	serial_port = _port;
 	serial_baud = _CCTALK_BAUDRATE;
@@ -79,7 +79,7 @@ void HM_CCTALK::init(HardwareSerial *_port)
 	serial_port->flush();
 }
 
-uint8_t HM_CCTALK::addCheckSum(uint8_t raw)//Add Data Checksum
+uint8_t ARDUINO_CCTALK::addCheckSum(uint8_t raw)//Add Data Checksum
 {
 	raw = 256 * ((raw / 256) + 1) - raw;
 	return raw;
@@ -100,7 +100,7 @@ uint8_t HM_CCTALK::addCheckSum(uint8_t raw)//Add Data Checksum
 //	return 1;
 //}
 
-bool HM_CCTALK::sendCcTalkSimplePacket(void)
+bool ARDUINO_CCTALK::sendCcTalkSimplePacket(void)
 {
 	int i = 0;
 	int _len = 0;
@@ -119,9 +119,10 @@ bool HM_CCTALK::sendCcTalkSimplePacket(void)
 		//debug("#W >> " + String(_buf[p],DEC));
 		serial_port->write(_buf[p]);
 	}
+	return 0;
 }
 
-//void HM_CCTALK::cctalkReadDataToBuffer(void)
+//void ARDUINO_CCTALK::cctalkReadDataToBuffer(void)
 //{
 //	if(!SerialIsRxEmpty(_CCTALK_PORT))
 //	{
@@ -137,14 +138,14 @@ bool HM_CCTALK::sendCcTalkSimplePacket(void)
 //	}
 //}
 
-bool HM_CCTALK::clrRepeatData(uint8_t _numData)
+bool ARDUINO_CCTALK::clrRepeatData(uint8_t _numData)
 {
 	timeoutReset();
 	while (_numData)
 	{
 		if(serial_port->available())
 		{
-			uint8_t c = serial_port->read();
+			serial_port->read();
 			//debug("#A >> " + String(c,DEC));
 			_numData--;
 			timeoutReset();
@@ -157,7 +158,7 @@ bool HM_CCTALK::clrRepeatData(uint8_t _numData)
 	return 1;
 }
 
-bool HM_CCTALK::checkAck(void)
+bool ARDUINO_CCTALK::checkAck(void)
 {
 	unsigned char _checksum_zero = 0;
 	int i;
@@ -177,11 +178,11 @@ bool HM_CCTALK::checkAck(void)
 	}
 }
 
-bool HM_CCTALK::receiveACKData(void)
+bool ARDUINO_CCTALK::receiveACKData(void)
 {
 	int i = 0;
-	int p = 0;
-	char _str[64];
+	// int p = 0;
+	// char _str[64];
 //	debug("receiveACKData");
 	timeoutReset();
 	for (i = 0; i < 5;)
@@ -207,7 +208,7 @@ bool HM_CCTALK::receiveACKData(void)
 	return 0;
 }
 
-bool HM_CCTALK::checkFault(void)
+bool ARDUINO_CCTALK::checkFault(void)
 {
 	unsigned char _checksum_zero = 0;
 	int i;
@@ -221,35 +222,35 @@ bool HM_CCTALK::checkFault(void)
 		//{
 		//	case 0:
 		//		debug("Self-check --> OK!\r\n");
-		//		errorFault = 0;//OK
+		//		error_fault = 0;//OK
 		//		break;
 		//	case 3:
 		//		debug("Self-check --> Coin jammed!!\r\n");
 		//		debug("Pls, CheckDevice.\r\n");
-		//		errorFault = 2;//jam
+		//		error_fault = 2;//jam
 		//	default :
 		//		debug("Self-check --> Not OK!!\r\n");
 		//		debug("Pls, CheckDevice.\r\n");
-		//		errorFault = 3;//Not OK
+		//		error_fault = 3;//Not OK
 		//}
 		//debug("Error fault = " + String(readFault[4]));
-		errorFault = readFault[4];
+		error_fault = readFault[4];
 		return 1;
 	}
 	else
 	{
 		debug("Self check --> Error!!\r\n");
 		debug("Pls, CheckDevice.\r\n");
-		errorFault = -1;//disconnect
+		error_fault = -1;//disconnect
 		return 0;
 	}
 }
 
-uint8_t HM_CCTALK::receiveFuaultData(void)
+uint8_t ARDUINO_CCTALK::receiveFuaultData(void)
 {
 	int i = 0;
-	int p = 0;
-	uint8_t _str[64];
+	// int p = 0;
+	// uint8_t _str[64];
 	timeoutReset();
 	for (i = 0; i < 6;)
 	{
@@ -272,16 +273,16 @@ uint8_t HM_CCTALK::receiveFuaultData(void)
 	return 0;
 }
 
-int8_t HM_CCTALK::getFaultCode(void)
+int8_t ARDUINO_CCTALK::getFaultCode(void)
 {
-	return errorFault;
+	return error_fault;
 }
 
-bool HM_CCTALK::receiveEventData(ccTalkAddr_t _slave)
+bool ARDUINO_CCTALK::receiveEventData(ccTalkAddr_t _slave)
 {
 	int i = 0;
-	int p = 0;
-	uint8_t _str[64];
+	// int p = 0;
+	// uint8_t _str[64];
 	timeoutReset();
 	for (i = 0; i < 16;)
 	{
@@ -304,7 +305,7 @@ bool HM_CCTALK::receiveEventData(ccTalkAddr_t _slave)
 	return 1;
 }
 
-//bool HM_CCTALK::receiveEventData(ccTalkAddr_t _slave)
+//bool ARDUINO_CCTALK::receiveEventData(ccTalkAddr_t _slave)
 //{
 //	int i=0;
 //	int p=0;
@@ -312,7 +313,7 @@ bool HM_CCTALK::receiveEventData(ccTalkAddr_t _slave)
 //	uint8_t g_u8RecData[RXBUFSIZE]  = {0};
 //	volatile uint32_t g_u32comRbytes = 0;
 //	volatile uint32_t g_u32comRtail  = 0;
-//	
+//
 //	uint8_t _str[64];
 //	receiveTimeOut = _RECEIVE_DATA_TIME_OUT;
 ////	printf("event : ");
@@ -351,13 +352,13 @@ bool HM_CCTALK::receiveEventData(ccTalkAddr_t _slave)
 ////					readBuff_Bill[i] = c;
 ////				i++;
 ////			}
-//			
+//
 ////			//debug
 ////			sprintf(_str, "data = %d", c);
 ////			debug(_str);
 ////			//
 //			//printf("%d " ,c);
-//				
+//
 ////			receiveTimeOut = _RECEIVE_DATA_TIME_OUT;
 ////			if(!displayState())
 ////				delay_1ms(_DELAY_TIME);
@@ -387,7 +388,7 @@ bool HM_CCTALK::receiveEventData(ccTalkAddr_t _slave)
 //	return 1;
 //}
 
-bool HM_CCTALK::simplePoll(ccTalkAddr_t _slaveAddr)
+bool ARDUINO_CCTALK::simplePoll(ccTalkAddr_t _slaveAddr)
 {
 	ccTalkPacket.SlaveAddr = _slaveAddr;
 	ccTalkPacket.NumData = 0;
@@ -408,7 +409,7 @@ bool HM_CCTALK::simplePoll(ccTalkAddr_t _slaveAddr)
 	return 0;
 }
 
-bool HM_CCTALK::resetDevice(ccTalkAddr_t _slaveAddr)
+bool ARDUINO_CCTALK::resetDevice(ccTalkAddr_t _slaveAddr)
 {
 	ccTalkPacket.SlaveAddr = _slaveAddr;
 	ccTalkPacket.NumData = 0;
@@ -429,7 +430,7 @@ bool HM_CCTALK::resetDevice(ccTalkAddr_t _slaveAddr)
 	return 0;
 }
 
-bool HM_CCTALK::selfCheck(ccTalkAddr_t _slaveAddr)
+bool ARDUINO_CCTALK::selfCheck(ccTalkAddr_t _slaveAddr)
 {
 	ccTalkPacket.SlaveAddr = _slaveAddr;
 	ccTalkPacket.NumData = 0;
@@ -450,7 +451,7 @@ bool HM_CCTALK::selfCheck(ccTalkAddr_t _slaveAddr)
 	return 0;
 }
 
-bool HM_CCTALK::setUnInhibit(ccTalkAddr_t _slaveAddr)
+bool ARDUINO_CCTALK::setUnInhibit(ccTalkAddr_t _slaveAddr)
 {
 	debug("SetUnInhibit\r\n");
 	ccTalkPacket.SlaveAddr = _slaveAddr;
@@ -482,7 +483,7 @@ bool HM_CCTALK::setUnInhibit(ccTalkAddr_t _slaveAddr)
 	return 0;
 }
 
-bool HM_CCTALK::setMaster(ccTalkAddr_t _slaveAddr, bool _value)
+bool ARDUINO_CCTALK::setMaster(ccTalkAddr_t _slaveAddr, bool _value)
 {
 	if (_value)
 		debug("SetMaster - ON\r\n");
@@ -513,7 +514,7 @@ bool HM_CCTALK::setMaster(ccTalkAddr_t _slaveAddr, bool _value)
 	return 0;
 }
 
-bool HM_CCTALK::readEvent(ccTalkAddr_t _slaveAddr)
+bool ARDUINO_CCTALK::readEvent(ccTalkAddr_t _slaveAddr)
 {
 	ccTalkPacket.SlaveAddr = _slaveAddr;
 	ccTalkPacket.NumData = 0;
@@ -527,7 +528,7 @@ bool HM_CCTALK::readEvent(ccTalkAddr_t _slaveAddr)
 	ccTalkPacket.CheckSum = addCheckSum(ccTalkPacket.SlaveAddr + ccTalkPacket.NumData + ccTalkPacket.MasterAddr + ccTalkPacket.Cmd);
 	sendCcTalkSimplePacket();
 
-	flagClrRepeatData = 1;
+	flag_clr_repeat_data = 1;
 	if (clrRepeatData(5))
 	{
 		if (receiveEventData(_slaveAddr)) {
@@ -541,7 +542,7 @@ bool HM_CCTALK::readEvent(ccTalkAddr_t _slaveAddr)
 //################## Coin Acceptor ###################//
 //----------------------------------------------------//
 
-int16_t HM_CCTALK::checkMicroSPCatCoinValue(uint8_t  cat_no)
+int16_t ARDUINO_CCTALK::checkMicroSPCatCoinValue(uint8_t  cat_no)
 {
 	int16_t _coin_value = 0;
 	switch (cat_no)
@@ -597,13 +598,13 @@ int16_t HM_CCTALK::checkMicroSPCatCoinValue(uint8_t  cat_no)
 	return _coin_value;
 }
 
-int16_t HM_CCTALK::checkBuffCoin(void)
+int16_t ARDUINO_CCTALK::checkBuffCoin(void)
 {
 	int16_t _value = 0;
 	//CoinCat = readBuff_Coin[5];
-	if (readBuff_Coin[4] - eventCoin > 1)
+	if (readBuff_Coin[4] - event_coin > 1)
 	{
-		uint8_t _diff_event = readBuff_Coin[4] - eventCoin;
+		uint8_t _diff_event = readBuff_Coin[4] - event_coin;
 		for (; _diff_event > 0; _diff_event--)
 		{
 			uint8_t _array = (_diff_event * 2) - 1;
@@ -615,25 +616,25 @@ int16_t HM_CCTALK::checkBuffCoin(void)
 	else if (readBuff_Coin[5] > 0)
 	{
 		//CoinCount = readBuff_Coin[4];
-		if (eventCoin != readBuff_Coin[4])
+		if (event_coin != readBuff_Coin[4])
 		{
 			_value = checkMicroSPCatCoinValue(readBuff_Coin[5]);
 		}
 	}
-	else if (eventCoin == readBuff_Coin[4])
+	else if (event_coin == readBuff_Coin[4])
 	{
 		if (readBuff_Coin[6] == 14)
 		{
-			errorCoinCount++;
-			if (errorCoinCount > 20) {
-				errorCoinCount = 0;
+			error_coin_cnt++;
+			if (error_coin_cnt > 20) {
+				error_coin_cnt = 0;
 				return -1;
 			}
 		}
 		else
-			errorCoinCount = 0;
+			error_coin_cnt = 0;
 	}
-	eventCoin = readBuff_Coin[4];//keep Microcoin event
+	event_coin = readBuff_Coin[4];//keep Microcoin event
 	return _value;
 }
 
@@ -641,7 +642,7 @@ int16_t HM_CCTALK::checkBuffCoin(void)
 //################## Bill Acceptor ###################//
 //----------------------------------------------------//
 
-uint16_t HM_CCTALK::iTLBV20BillValueVerify(uint8_t _ch)
+uint16_t ARDUINO_CCTALK::iTLBV20BillVerifyValue(uint8_t _ch)
 {
 	uint16_t _value = 0;
 	switch (_ch)
@@ -693,7 +694,7 @@ uint16_t HM_CCTALK::iTLBV20BillValueVerify(uint8_t _ch)
 	return _value;
 }
 
-uint16_t HM_CCTALK::iTLBV20BillValueReceived(uint8_t _ch)
+uint16_t ARDUINO_CCTALK::iTLBV20BillAcceptedValue(uint8_t _ch)
 {
 	uint16_t _value = 0;
 	switch (_ch)
@@ -745,84 +746,83 @@ uint16_t HM_CCTALK::iTLBV20BillValueReceived(uint8_t _ch)
 	return _value;
 }
 
-uint8_t HM_CCTALK::checkBuffBill(void)
+uint8_t ARDUINO_CCTALK::checkBuffBill(void)
 {
 	int16_t _value = 0;
 	if (readBuff_Bill[5] > 0)
 	{
-		if (eventBill != readBuff_Bill[4])
+		if (event_bill != readBuff_Bill[4])
 		{
 			if ((uint8_t)readBuff_Bill[6] == 1) {
-				_value = iTLBV20BillValueVerify((uint8_t)readBuff_Bill[5]);
+				_value = iTLBV20BillVerifyValue((uint8_t)readBuff_Bill[5]);
 				if (_value > 0) {
-					bill_value = _value;
+					bill_verify_value = _value;
 					flag_bill_verify = true;
-					flag_bill_received = false;
+					flag_bill_accepted = false;
 				}
 				//logDebug->println("BillVerify"));
 			}
 			else if ((uint8_t)readBuff_Bill[6] == 0) {
-				_value = iTLBV20BillValueReceived((uint8_t)readBuff_Bill[5]);
+				_value = iTLBV20BillAcceptedValue((uint8_t)readBuff_Bill[5]);
 				if (_value > 0) {
-					bill_value = _value;
-					flag_bill_received = true;
+					bill_accepted_value = _value;
+					flag_bill_accepted = true;
 					flag_bill_verify = false;
 				}
 				//logDebug->println("BillAccepted"));
 			}
 		}
 	}
-	else if (eventBill == readBuff_Bill[4])
+	else if (event_bill == readBuff_Bill[4])
 	{
 		if (readBuff_Bill[6] == 14)
 		{
-			errorBillCount++;
-			if (errorBillCount > 20) {
-				errorBillCount = 0;
+			error_bill_cnt++;
+			if (error_bill_cnt > 20) {
+				error_bill_cnt = 0;
 				return -1;
 			}
 		}
 		else
-			errorBillCount = 0;
+			error_bill_cnt = 0;
 	}
-	eventBill = readBuff_Bill[4];
+	event_bill = readBuff_Bill[4];
 	return _value;
 }
 
-void HM_CCTALK::clrReadBuffer()
+void ARDUINO_CCTALK::clrReadBuffer()
 {
 	if (serial_port->available()) {
-		uint8_t c = serial_port->read();
+		serial_port->read();
 	}
 }
 
-bool HM_CCTALK::billAvailable(void)
+bool ARDUINO_CCTALK::billAvailable(void)
 {
-	return bill_verify_flag;
+	return flag_bill_verify;
 }
 
-uint16_t HM_CCTALK::readBillAvailable(void)
+uint16_t ARDUINO_CCTALK::readBillAvailable(void)
 {
 	uint16_t value = 0;
 	if (bill_verify_value)
 		value = bill_verify_value;
 	bill_verify_value = 0;
-	bill_verify_flag = false;
+	flag_bill_verify = false;
 	return value;
 }
 
-bool HM_CCTALK::billAccepted(void)
+bool ARDUINO_CCTALK::billAccepted(void)
 {
-	return bill_accepted_flag;
+	return flag_bill_accepted;
 }
 
-uint16_t HM_CCTALK::readBillAccepted(void)
+uint16_t ARDUINO_CCTALK::readBillAccepted(void)
 {
 	uint16_t value = 0;
 	if (bill_accepted_value)
 		value = bill_accepted_value;
 	bill_accepted_value = 0;
-	bill_accepted_flag = false;
+	flag_bill_accepted = false;
 	return value;
 }
-

@@ -1,15 +1,8 @@
-// hm_cctalk_v104.h
+#ifndef _ARDUINO_CCTALK_h
+#define _ARDUINO_CCTALK_h
 
-#ifndef _HM_CCTALK_V104_h
-#define _HM_CCTALK_V104_h
-
-#include "sm_debug_v102.h"
-
-#if defined(ARDUINO) && ARDUINO >= 100
-	#include "arduino.h"
-#else
-	#include "WProgram.h"
-#endif
+#include <Arduino.h>
+#include <ArduinoDebug.h>
 
 #define _DATA_MAX_SIZE 				8
 #define _RECEIVE_DATA_TIME_OUT		200 // ms
@@ -69,12 +62,11 @@ typedef struct
 	uint8_t				CheckSum;
 }ccTalk_simple_packet_t;
 
-class HM_CCTALK
+class ARDUINO_CCTALK
 {
 
 private:
-
-	SM_DEBUG *logDebug;
+	ARDUINO_DEBUG *logDebug;
 	HardwareSerial *serial_port;
 	uint32_t serial_baud;
 	uint32_t previous_time = 0;
@@ -102,8 +94,6 @@ private:
 	volatile unsigned char readBuff_Coin[16];
 	volatile unsigned char readBuff_Bill[16];
 
-	bool flag_bill_verify = false;
-	bool flag_bill_received = false;
 	bool flag_clr_repeat_data = 1;
 
 	uint8_t event_coin = 0;
@@ -113,15 +103,18 @@ private:
 
 	int8_t error_fault = 0;
 
-	uint16_t bill_value = 0;
+	bool flag_bill_verify = false;
+	bool flag_bill_accepted = false;
+	uint16_t bill_accepted_value = 0;
+	uint16_t bill_verify_value = 0;
 
 	void debug(String data);
 	void timeoutReset(void);
 	bool timeoutCheck(uint32_t _time);
 
 public:
-	HM_CCTALK();
-	~HM_CCTALK();
+	ARDUINO_CCTALK();
+	~ARDUINO_CCTALK();
 	void init(HardwareSerial *_port);
 	bool sendCcTalkSimplePacket(void);
 	bool clrRepeatData(uint8_t _numData);
@@ -136,7 +129,7 @@ public:
 	bool setUnInhibit(ccTalkAddr_t _slaveAddr);
 	bool setMaster(ccTalkAddr_t _slaveAddr, bool _value);
 	bool readEvent(ccTalkAddr_t _slaveAddr);
-	
+
 	int8_t getFaultCode(void);
 	int16_t checkBuffCoin(void);
 
@@ -144,13 +137,17 @@ public:
 	uint8_t receiveFuaultData(void);
 
 	int16_t checkMicroSPCatCoinValue(uint8_t  cat_no);
-	uint8_t checkBuffBill(void);
 
 	void clrReadBuffer();
 
-	uint16_t iTLBV20BillValueVerify(uint8_t  ch);
-	uint16_t iTLBV20BillValueReceived(uint8_t _ch);
+	//Bill Acceptor
+	uint16_t iTLBV20BillVerifyValue(uint8_t  ch);
+	uint16_t iTLBV20BillAcceptedValue(uint8_t _ch);
+	bool billAvailable(void);
+	uint16_t readBillAvailable(void);
+	bool billAccepted(void);
+	uint16_t readBillAccepted(void);
+	uint8_t checkBuffBill(void);
 };
 
-#endif //
-
+#endif //_ARDUINO_CCTALK_h

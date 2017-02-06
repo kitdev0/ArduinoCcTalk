@@ -1,31 +1,11 @@
-//################################################################################//
-//################################################################################//
-//##----------------------------------------------------------------------------##//
-//##																			##//   
-//##				  arduinoCcTalkLib BY CIRBOX Co.,Ltd,						##//
-//##																			##// 
-//##    Create By :  MR.KITTISAK RAKTHAM										##//
-//##    Email     :  kit.cirbox@gmail.com										##// 
-//##    Tel.      :  +668-4633-0924 [DTAC]										##//  
-//##    Hardware  :  ARDUINO MEGA2560 REV.3										##// 
-//##              :  miniCoffee Hack Board Rev.1 [CIRBOX]						##//
-//##																			##//
-//##----------------------------------------------------------------------------##//
-//################################################################################//
-//################################################################################//
-
-//########################---------- History --------#############################//
-//15/01/2017 - Created 
-//###############################################################################//
-#include "TimerOne.h"
-#include "sm_debug_v102.h"
-
-#include "hm_cctalk_device_v202.h"
-#include "sm_timeout.h"
+#include <TimerOne.h>
+#include "ArduinoDebug.h"
 
 //Define Validator Power Pin
 #define _PIN_COIN_ACC_PWR	9
 #define _PIN_BILL_ACC_PWR	8
+
+#include "ArduinoCcTalkDevice.h"
 
 #define _CONSOLE_BAUDRATE_DEFINE	115200
 
@@ -33,8 +13,8 @@
 //#define _MAIN_DEBUG _DEBUG_WRITE_ONLY
 //#define _MAIN_DEBUG _DEBUG_SAY_AND_WRITE
 
-SM_DEBUG				logDebug("MAIN");
-HM_CCTALK_DEVICE		ccTalkDevice;
+ARDUINO_DEBUG						logDebug("MAIN");
+ARDUINO_CCTALK_DEVICE		ccTalkDevice;
 
 ///
 uint32_t current_millis = 0;
@@ -60,6 +40,14 @@ int8_t last_bill_acc_error_code = 0;
 uint16_t total_coin_value = 0;
 uint16_t total_bill_value = 0;
 
+void debug(String data);
+void timerTask();
+void readAcceptCoinValue();
+void readAcceptBillValue();
+void appTask10ms();
+void appTask100ms();
+void appTask500ms();
+void appTask1000ms();
 
 void setup()
 {
@@ -68,7 +56,7 @@ void setup()
 	debug(F("-----------------------------------------"));
 	debug(F("## ArduinoCcTalkLib - Example >> Start..."));
 
-	ccTalkDevice.portInit(&Serial3); //Init. Serial port for ccTalk Port. 
+	ccTalkDevice.portInit(&Serial3); //Init. Serial port for ccTalk Port.
 	ccTalkDevice.billPwrPinDefine(_PIN_BILL_ACC_PWR); delay(500);
 	ccTalkDevice.coinPwrPinDefine(_PIN_COIN_ACC_PWR); delay(500);
 	ccTalkDevice.billPwrSet(HIGH); delay(2000);
@@ -87,14 +75,15 @@ void loop()
 	if (ccTalkDevice.coinState() != 0)//if coin acceptor is not raedy
 	{
 		int8_t _error_code = ccTalkDevice.coinState();
-		if(_error_code != last_coin_acc_error_code)
-		if (_error_code == -1) {
-			debug("Can't connect to Coin acc.");
+		if(_error_code != last_coin_acc_error_code){
+			if (_error_code == -1) {
+				debug("Can't connect to Coin acc.");
+			}
+			else{
+				debug("Coin acc. Error Code = " + String(_error_code));
+			}
+			last_coin_acc_error_code = _error_code;
 		}
-		else{
-			debug("Coin acc. Error Code = " + String(_error_code));
-		}
-		last_coin_acc_error_code = _error_code;
 	}
 	else
 	{
@@ -104,10 +93,10 @@ void loop()
 
 	readAcceptBillValue();
 	ccTalkDevice.billRealTimeStateCheck();
-	if (ccTalkDevice.billState() != 0)//if bill acceptor is not raedy
+	if (ccTalkDevice.billState() != 0)//if bill acceptor is not ready
 	{
 		int8_t _error_code = ccTalkDevice.billState();
-		if (_error_code != last_bill_acc_error_code)
+		if (_error_code != last_bill_acc_error_code){
 			if (_error_code == -1) {
 				debug("Can't connect to Bill acc.");
 			}
@@ -115,6 +104,7 @@ void loop()
 				debug("Bill acc. Error Code = " + String(_error_code));
 			}
 			last_bill_acc_error_code = _error_code;
+		}
 	}
 	else
 	{
@@ -134,19 +124,19 @@ void readAcceptCoinValue()
 
 void readAcceptBillValue()
 {
-	if (ccTalkDevice.billIsVerfied()) {
-		int16_t _value = ccTalkDevice.billValue();
-		//total_bill_value += _value;
-		debug("Bill verify value = " + String(_value));
-		//debug("Total Bill value = " + String(total_bill_value));
-	}
-
-	if (ccTalkDevice.billIsReceived()) {
-		int16_t _value = ccTalkDevice.billValue();
-		total_bill_value += _value;
-		debug("Bill received value = " + String(_value));
-		debug("Total Bill value = " + String(total_bill_value));
-	}
+	// if (ccTalkDevice.billIsVerfied()) {
+	// 	int16_t _value = ccTalkDevice.billValue();
+	// 	//total_bill_value += _value;
+	// 	debug("Bill verify value = " + String(_value));
+	// 	//debug("Total Bill value = " + String(total_bill_value));
+	// }
+	//
+	// if (ccTalkDevice.billIsReceived()) {
+	// 	int16_t _value = ccTalkDevice.billValue();
+	// 	total_bill_value += _value;
+	// 	debug("Bill received value = " + String(_value));
+	// 	debug("Total Bill value = " + String(total_bill_value));
+	// }
 }
 
 //////////////////////////////////////////////////

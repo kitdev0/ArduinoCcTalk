@@ -1,23 +1,21 @@
-#include "hm_cctalk_device_v202.h"
-#include "hm_cctalk_v201.h"
+#include "ArduinoCcTalkDevice.h"
+#include "ArduinoCctalk.h"
 
-HM_CCTALK	ccTalk;
+ARDUINO_CCTALK	ccTalk;
 
-HM_CCTALK_DEVICE::HM_CCTALK_DEVICE()
+ARDUINO_CCTALK_DEVICE::ARDUINO_CCTALK_DEVICE()
 {
 #ifdef _CCTALK_DEVICE_DEBUG
-	logDebug = new SM_DEBUG(F("CCTALK-DEVICE"));
+	logDebug = new ARDUINO_DEBUG(F("CCTALK-DEVICE"));
 #endif // _CCTALK_DEVICE_DEBUG
 }
 
-HM_CCTALK_DEVICE::~HM_CCTALK_DEVICE()
+ARDUINO_CCTALK_DEVICE::~ARDUINO_CCTALK_DEVICE()
 {
-#ifdef _CCTALK_DEVICE_DEBUG
-	delete logDebug;
-#endif // _CCTALK_DEVICE_DEBUG
+
 }
 
-void HM_CCTALK_DEVICE::debug(String data)
+void ARDUINO_CCTALK_DEVICE::debug(String data)
 {
 #ifdef _CCTALK_DEVICE_DEBUG
 #if _CCTALK_DEVICE_DEBUG == _DEBUG_SAY_ONLY
@@ -30,7 +28,7 @@ void HM_CCTALK_DEVICE::debug(String data)
 #endif
 }
 
-void HM_CCTALK_DEVICE::portInit(HardwareSerial *_serial)
+void ARDUINO_CCTALK_DEVICE::portInit(HardwareSerial *_serial)
 {
 	debug("portInit");
 	ccTalk.init(_serial);
@@ -39,9 +37,9 @@ void HM_CCTALK_DEVICE::portInit(HardwareSerial *_serial)
 //-------------------------------------------------//
 //------------- Coin Acceptor Device --------------//
 //-------------------------------------------------//
-bool HM_CCTALK_DEVICE::coinInit(void)
+bool ARDUINO_CCTALK_DEVICE::coinInit(void)
 {
-	uint16_t _delay = 1000;
+	// uint16_t _delay = 1000;
 
 	debug("CoinAcc. Initial");
 	//coinPwrSet(LOW);
@@ -59,19 +57,19 @@ bool HM_CCTALK_DEVICE::coinInit(void)
 
 }
 
-bool HM_CCTALK_DEVICE::coinCheckReady(void)
+bool ARDUINO_CCTALK_DEVICE::coinCheckReady(void)
 {
 //	debug("Check Coin Ready?");
 	if (ccTalk.resetDevice(ccTalk_ADDR_COIN))
 	{
-		int8_t _last_coin_state = coin_state;
+		// int8_t _last_coin_state = coin_state;
 		if(coin_state == -1)
 			debug("CoinAcc. Connection >> OK");
 		delay(200);
 		ccTalk.selfCheck(ccTalk_ADDR_COIN);
 		delay(200);
 		coin_state = ccTalk.getFaultCode();
-		if (coin_state == 0) 
+		if (coin_state == 0)
 		{
 //			if (_last_coin_state == -1) {
 				ccTalk.setUnInhibit(ccTalk_ADDR_COIN);
@@ -121,7 +119,7 @@ bool HM_CCTALK_DEVICE::coinCheckReady(void)
 	return 0;
 }
 
-void HM_CCTALK_DEVICE::coinDisable(void)
+void ARDUINO_CCTALK_DEVICE::coinDisable(void)
 {
 	if (coin_state != 0) //coin not ready
 		return;
@@ -129,7 +127,7 @@ void HM_CCTALK_DEVICE::coinDisable(void)
 	flag_coin_enable = false;
 }
 
-void HM_CCTALK_DEVICE::coinEnable(void)
+void ARDUINO_CCTALK_DEVICE::coinEnable(void)
 {
 	if (coin_state != 0) //coin not ready
 		return;
@@ -139,7 +137,7 @@ void HM_CCTALK_DEVICE::coinEnable(void)
 		flag_coin_enable = false;
 }
 
-void HM_CCTALK_DEVICE::coinPwrSet(bool _value)
+void ARDUINO_CCTALK_DEVICE::coinPwrSet(bool _value)
 {
 	if (_value != coin_acc_pwr_state)
 	{
@@ -159,7 +157,7 @@ void HM_CCTALK_DEVICE::coinPwrSet(bool _value)
 
 }
 
-void HM_CCTALK_DEVICE::coinPwrPinDefine(uint8_t _pin)
+void ARDUINO_CCTALK_DEVICE::coinPwrPinDefine(uint8_t _pin)
 {
 	coin_acc_pwr_pin = _pin;
 	pinMode(coin_acc_pwr_pin, OUTPUT);
@@ -168,7 +166,7 @@ void HM_CCTALK_DEVICE::coinPwrPinDefine(uint8_t _pin)
 	coinPwrSet(LOW);
 }
 
-void HM_CCTALK_DEVICE::coinReadEvent(void)
+void ARDUINO_CCTALK_DEVICE::coinReadEvent(void)
 {
 	int8_t _value = 0;
 	if (coin_state == 0 && flag_coin_enable)
@@ -191,7 +189,7 @@ void HM_CCTALK_DEVICE::coinReadEvent(void)
 	}
 }
 
-bool HM_CCTALK_DEVICE::coinRealTimeStateCheck(void)
+bool ARDUINO_CCTALK_DEVICE::coinRealTimeStateCheck(void)
 {
 	if (coin_state != 0)
 	{
@@ -204,19 +202,19 @@ bool HM_CCTALK_DEVICE::coinRealTimeStateCheck(void)
 	return 1;
 }
 
-int16_t HM_CCTALK_DEVICE::coinGetValue(void)
+int16_t ARDUINO_CCTALK_DEVICE::coinGetValue(void)
 {
 	int16_t _value = coin_value;
 	coin_value = 0;
 	return _value;
 }
 
-int8_t HM_CCTALK_DEVICE::coinState(void)
+int8_t ARDUINO_CCTALK_DEVICE::coinState(void)
 {
 	return coin_state;
 }
 
-bool HM_CCTALK_DEVICE::coinIsEnable(void)
+bool ARDUINO_CCTALK_DEVICE::coinIsEnable(void)
 {
 	return flag_coin_enable;
 }
@@ -225,9 +223,9 @@ bool HM_CCTALK_DEVICE::coinIsEnable(void)
 //-------------------------------------------------//
 //------------- Bill Acceptor Device --------------//
 //-------------------------------------------------//
-bool HM_CCTALK_DEVICE::billInit(void)
+bool ARDUINO_CCTALK_DEVICE::billInit(void)
 {
-	uint16_t _delay = 1000;
+	// uint16_t _delay = 1000;
 	debug("BillAcc. Initial");
 
 	bill_state = -1;
@@ -238,11 +236,11 @@ bool HM_CCTALK_DEVICE::billInit(void)
 	return 1;
 }
 
-bool HM_CCTALK_DEVICE::billCheckReady(void)
+bool ARDUINO_CCTALK_DEVICE::billCheckReady(void)
 {
 	if (ccTalk.resetDevice(ccTalk_ADDR_BILL))
 	{
-		int8_t _last_bill_state = bill_state;
+		// int8_t _last_bill_state = bill_state;
 		if (bill_state == -1)
 			debug("BillAcc. Connection >> OK");
 		delay(200);
@@ -300,7 +298,7 @@ bool HM_CCTALK_DEVICE::billCheckReady(void)
 	return 0;
 }
 
-void HM_CCTALK_DEVICE::billDisable(void)
+void ARDUINO_CCTALK_DEVICE::billDisable(void)
 {
 	if (bill_state != 0) //coin not ready
 		return;
@@ -308,7 +306,7 @@ void HM_CCTALK_DEVICE::billDisable(void)
 	flag_bill_enable = false;
 }
 
-void HM_CCTALK_DEVICE::billEnable(void)
+void ARDUINO_CCTALK_DEVICE::billEnable(void)
 {
 	if (bill_state != 0) //coin not ready
 		return;
@@ -318,7 +316,7 @@ void HM_CCTALK_DEVICE::billEnable(void)
 		flag_bill_enable = false;
 }
 
-void HM_CCTALK_DEVICE::billPwrSet(bool _value)
+void ARDUINO_CCTALK_DEVICE::billPwrSet(bool _value)
 {
 	if (_value != bill_acc_pwr_state)
 	{
@@ -337,7 +335,7 @@ void HM_CCTALK_DEVICE::billPwrSet(bool _value)
 	}
 }
 
-void HM_CCTALK_DEVICE::billPwrPinDefine(uint8_t _pin)
+void ARDUINO_CCTALK_DEVICE::billPwrPinDefine(uint8_t _pin)
 {
 	bill_acc_pwr_pin = _pin;
 	pinMode(bill_acc_pwr_pin, OUTPUT);
@@ -346,9 +344,9 @@ void HM_CCTALK_DEVICE::billPwrPinDefine(uint8_t _pin)
 	billPwrSet(LOW);
 }
 
-void HM_CCTALK_DEVICE::billReadEvent(void)
+void ARDUINO_CCTALK_DEVICE::billReadEvent(void)
 {
-	int8_t _value = 0;
+	// int8_t _value = 0;
 	if (bill_state == 0 && flag_bill_enable)
 	{
 		read_bill_event_interval++;
@@ -365,7 +363,7 @@ void HM_CCTALK_DEVICE::billReadEvent(void)
 					}
 					billCheckReady();
 				}
-					
+
 				read_bill_event_interval = 0;
 			}
 			else {
@@ -375,7 +373,7 @@ void HM_CCTALK_DEVICE::billReadEvent(void)
 	}
 }
 
-bool HM_CCTALK_DEVICE::billRealTimeStateCheck(void)
+bool ARDUINO_CCTALK_DEVICE::billRealTimeStateCheck(void)
 {
 	if (bill_state != 0)
 	{
@@ -388,20 +386,17 @@ bool HM_CCTALK_DEVICE::billRealTimeStateCheck(void)
 	return 1;
 }
 
-int16_t HM_CCTALK_DEVICE::billIsVerfied(void)
+bool ARDUINO_CCTALK_DEVICE::billIsVerfied(void)
 {
-	int16_t _value = bill_value;
-	bill_value = 0;
-	return ccTalk.flagBill;
+	return ccTalk.billAvailable();
 }
 
-int8_t HM_CCTALK_DEVICE::billState(void)
+int8_t ARDUINO_CCTALK_DEVICE::billState(void)
 {
 	return bill_state;
 }
 
-bool HM_CCTALK_DEVICE::billIsEnable(void)
+bool ARDUINO_CCTALK_DEVICE::billIsEnable(void)
 {
 	return flag_bill_enable;
 }
-
