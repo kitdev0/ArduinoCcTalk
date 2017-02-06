@@ -40,15 +40,6 @@ int8_t last_bill_acc_error_code = 0;
 uint16_t total_coin_value = 0;
 uint16_t total_bill_value = 0;
 
-void debug(String data);
-void timerTask();
-void readAcceptCoinValue();
-void readAcceptBillValue();
-void appTask10ms();
-void appTask100ms();
-void appTask500ms();
-void appTask1000ms();
-
 void setup()
 {
 	logDebug.init();
