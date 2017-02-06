@@ -22,7 +22,7 @@
 //          For example, the message [ 1 ] [ 0 ] [ 2 ] [ 0 ] would be followed
 //      by the checksum [ 253 ] because 1 + 0 + 2 + 0 + 253 = 256 = 0.
 //############################################################################//
-#include "ArduinoCctalk.h"
+#include "ArduinoCcTalk.h"
 
 ARDUINO_CCTALK::ARDUINO_CCTALK()
 {

@@ -1,5 +1,5 @@
 #include "ArduinoCcTalkDevice.h"
-#include "ArduinoCctalk.h"
+#include "ArduinoCcTalk.h"
 
 ARDUINO_CCTALK	ccTalk;
 
