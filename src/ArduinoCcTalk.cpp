@@ -292,7 +292,7 @@ bool ARDUINO_CCTALK::receiveEventData(ccTalkAddr_t _slave)
 			//debug("# >> " + String(c, DEC));
 			if (_slave == ccTalk_ADDR_COIN)
 				readBuff_Coin[i] = c;
-			if (_slave == ccTalk_ADDR_COIN)
+			if (_slave == ccTalk_ADDR_BILL)
 				readBuff_Bill[i] = c;
 			i++;
 			timeoutReset();
@@ -538,6 +538,37 @@ bool ARDUINO_CCTALK::readEvent(ccTalkAddr_t _slaveAddr)
 	return 0;
 }
 
+bool ARDUINO_CCTALK::routeBill(ccTalkAddr_t _slaveAddr, bool _value)
+{
+	if (_value)
+		debug("routeBill - Accept\r\n");
+	else
+		debug("routeBill - Reject\r\n");
+	ccTalkPacket.SlaveAddr = _slaveAddr;
+	ccTalkPacket.NumData = 1;
+	ccTalkPacket.MasterAddr = ccTalk_ADDR_MASTER;
+	ccTalkPacket.Cmd = ccTalk_CMD_ROUTE_BILL;
+
+	if (_value)
+		ccTalkPacket.Data[0] = 1;
+	else
+		ccTalkPacket.Data[0] = 0;
+
+	ccTalkPacket.CheckSum = addCheckSum(ccTalkPacket.SlaveAddr + ccTalkPacket.NumData + ccTalkPacket.MasterAddr + ccTalkPacket.Cmd + ccTalkPacket.Data[0]);
+	sendCcTalkSimplePacket();
+
+	//wait to data received
+	if (clrRepeatData(6))
+	{
+		if (receiveACKData()) {
+			//delay_1ms(50);
+			return 1;
+		}
+	}
+	//delay_1ms(50);
+	return 0;
+}
+
 //----------------------------------------------------//
 //################## Coin Acceptor ###################//
 //----------------------------------------------------//
@@ -642,101 +673,131 @@ int16_t ARDUINO_CCTALK::checkBuffCoin(void)
 //################## Bill Acceptor ###################//
 //----------------------------------------------------//
 
-uint16_t ARDUINO_CCTALK::iTLBV20BillVerifyValue(uint8_t _ch)
-{
-	uint16_t _value = 0;
-	switch (_ch)
-	{
-	case 1:
-		debug("billAcc >> Verify 20BTH.");
-		_value = 20;
-		break;
-	case 2:
-		debug("billAcc >> Verify 50BTH.");
-		_value = 50;
-		break;
-	case 3:
-		debug("billAcc >> Verify 100BAHT.");
-		_value = 100;
-		break;
-	case 4:
-		debug("billAcc >> Verify 500BAHT.");
-		_value = 500;
-		break;
-	case 5:
-		debug("billAcc >> Verify  500BAHT.");
-		_value = 500;
-		break;
-	case 6:
-		debug("billAcc >> Verify  1000BAHT.");
-		_value = 1000;
-		break;
-	case 7:
-		debug("billAcc >> Verify 1000BAHT.");
-		_value = 1000;
-		break;
-	case 8:
-		debug("billAcc >> Verify 50BAHT.");
-		_value = 50;
-		break;
-	case 9:
-		debug("billAcc >> Verify 20BAHT.");
-		_value = 20;
-		break;
-	case 10:
-		debug("billAcc >> Verify 500BAHT.");
-		_value = 500;
-		break;
-	default:
-		debug("billAcc >> Verify Ch. Not found\r\n");
-		_value = 0;
-	}
-	return _value;
-}
+// uint16_t ARDUINO_CCTALK::iTLBV20BillVerifyValue(uint8_t _ch)
+// {
+// 	uint16_t _value = 0;
+// 	switch (_ch)
+// 	{
+// 	case 1:
+// 		debug("billAcc >> Verify 20BTH.");
+// 		_value = 20;
+// 		break;
+// 	case 2:
+// 		debug("billAcc >> Verify 50BTH.");
+// 		_value = 50;
+// 		break;
+// 	case 3:
+// 		debug("billAcc >> Verify 100BAHT.");
+// 		_value = 100;
+// 		break;
+// 	case 4:
+// 		debug("billAcc >> Verify 500BAHT.");
+// 		_value = 500;
+// 		break;
+// 	case 5:
+// 		debug("billAcc >> Verify  500BAHT.");
+// 		_value = 500;
+// 		break;
+// 	case 6:
+// 		debug("billAcc >> Verify  1000BAHT.");
+// 		_value = 1000;
+// 		break;
+// 	case 7:
+// 		debug("billAcc >> Verify 1000BAHT.");
+// 		_value = 1000;
+// 		break;
+// 	case 8:
+// 		debug("billAcc >> Verify 50BAHT.");
+// 		_value = 50;
+// 		break;
+// 	case 9:
+// 		debug("billAcc >> Verify 20BAHT.");
+// 		_value = 20;
+// 		break;
+// 	case 10:
+// 		debug("billAcc >> Verify 500BAHT.");
+// 		_value = 500;
+// 		break;
+// 	default:
+// 		debug("billAcc >> Verify Ch. Not found\r\n");
+// 		_value = 0;
+// 	}
+// 	return _value;
+// }
 
-uint16_t ARDUINO_CCTALK::iTLBV20BillAcceptedValue(uint8_t _ch)
+int16_t ARDUINO_CCTALK::checkBV20ChanelValue(uint8_t _ch,uint8_t _sorter)
 {
-	uint16_t _value = 0;
+	int16_t _value = 0;
 	switch (_ch)
 	{
 	case 1:
-		debug("billAcc >> Received - 20BAHT.");
+		if(_sorter == 1)
+			debug("billAcc >> Verify 20BTH.");
+		else if(_sorter == 0)
+			debug("billAcc >> Received - 20BAHT.");
 		_value = 20;
 		break;
 	case 2:
-		debug("billAcc >> Received - 50BAHT.");
+		if(_sorter == 1)
+			debug("billAcc >> Verify 50BTH.");
+		else if(_sorter == 0)
+			debug("billAcc >> Received - 50BAHT.");
 		_value = 50;
 		break;
 	case 3:
-		debug("billAcc >> Received - 100BAHT.");
+		if(_sorter == 1)
+			debug("billAcc >> Verify 100BTH.");
+		else if(_sorter == 0)
+			debug("billAcc >> Received - 100BAHT.");
 		_value = 100;
 		break;
 	case 4:
-		debug("billAcc >> Received - 500BAHT.");
+		if(_sorter == 1)
+			debug("billAcc >> Verify 500BTH.");
+		else if(_sorter == 0)
+			debug("billAcc >> Received - 500BAHT.");
 		_value = 500;
 		break;
 	case 5:
-		debug("billAcc >> Received - 500BAHT.");
+		if(_sorter == 1)
+			debug("billAcc >> Verify 500BTH.");
+		else if(_sorter == 0)
+			debug("billAcc >> Received - 500BAHT.");
 		_value = 500;
 		break;
 	case 6:
-		debug("billAcc >> Received - 1000BAHT.");
+		if(_sorter == 1)
+			debug("billAcc >> Verify 1000BTH.");
+		else if(_sorter == 0)
+			debug("billAcc >> Received - 1000BAHT.");
 		_value = 1000;
 		break;
 	case 7:
-		debug("billAcc >> Received - 1000BAHT.");
+		if(_sorter == 1)
+			debug("billAcc >> Verify 1000BTH.");
+		else if(_sorter == 0)
+			debug("billAcc >> Received - 1000BAHT.");
 		_value = 1000;
 		break;
 	case 8:
-		debug("billAcc >> Received - 50BAHT.");
+		if(_sorter == 1)
+			debug("billAcc >> Verify 50BTH.");
+		else if(_sorter == 0)
+			debug("billAcc >> Received - 50BAHT.");
 		_value = 50;
 		break;
 	case 9:
-		debug("billAcc >> Received - 20BAHT.");
+		if(_sorter == 1)
+			debug("billAcc >> Verify 20BTH.");
+		else if(_sorter == 0)
+			debug("billAcc >> Received - 20BAHT.");
 		_value = 20;
 		break;
 	case 10:
-		debug("billAcc >> Received - 500BAHT.");
+		if(_sorter == 1)
+			debug("billAcc >> Verify 500BTH.");
+		else if(_sorter == 0)
+			debug("billAcc >> Received - 500BAHT.");
 		_value = 500;
 		break;
 	default:
@@ -746,31 +807,35 @@ uint16_t ARDUINO_CCTALK::iTLBV20BillAcceptedValue(uint8_t _ch)
 	return _value;
 }
 
-uint8_t ARDUINO_CCTALK::checkBuffBill(void)
+int16_t ARDUINO_CCTALK::checkBuffBill(void)
 {
 	int16_t _value = 0;
 	if (readBuff_Bill[5] > 0)
 	{
 		if (event_bill != readBuff_Bill[4])
 		{
-			if ((uint8_t)readBuff_Bill[6] == 1) {
-				_value = iTLBV20BillVerifyValue((uint8_t)readBuff_Bill[5]);
-				if (_value > 0) {
-					bill_verify_value = _value;
-					flag_bill_verify = true;
-					flag_bill_accepted = false;
-				}
-				//logDebug->println("BillVerify"));
-			}
-			else if ((uint8_t)readBuff_Bill[6] == 0) {
-				_value = iTLBV20BillAcceptedValue((uint8_t)readBuff_Bill[5]);
-				if (_value > 0) {
-					bill_accepted_value = _value;
-					flag_bill_accepted = true;
-					flag_bill_verify = false;
-				}
-				//logDebug->println("BillAccepted"));
-			}
+			// if ((uint8_t)readBuff_Bill[6] == 1) {
+			// 	_value = iTLBV20BillVerifyValue((uint8_t)readBuff_Bill[5]);
+			// 	if (_value > 0) {
+			// 		bill_verify_value = _value;
+			// 		// flag_bill_verify = true;
+			// 		// flag_bill_accepted = false;
+			// 	}
+			// 	//logDebug->println("BillVerify"));
+			// }
+			// else if ((uint8_t)readBuff_Bill[6] == 0) {
+			// 	_value = iTLBV20BillAcceptedValue((uint8_t)readBuff_Bill[5]);
+			// 	if (_value > 0) {
+			// 		bill_accepted_value = _value;
+			// 		// flag_bill_accepted = true;
+			// 		// flag_bill_verify = false;
+			// 	}
+			// 	//logDebug->println("BillAccepted"));
+			// }
+			uint8_t _ch = (uint8_t)readBuff_Bill[5];
+			uint8_t _sorter = (uint8_t)readBuff_Bill[6];
+			bill_sorter = (int8_t)_sorter;
+			_value = checkBV20ChanelValue(_ch, _sorter);
 		}
 	}
 	else if (event_bill == readBuff_Bill[4])
@@ -797,32 +862,27 @@ void ARDUINO_CCTALK::clrReadBuffer()
 	}
 }
 
-bool ARDUINO_CCTALK::billAvailable(void)
-{
-	return flag_bill_verify;
-}
+// uint16_t ARDUINO_CCTALK::readBillAvailable(void)
+// {
+// 	uint16_t value = 0;
+// 	if (bill_verify_value)
+// 		value = bill_verify_value;
+// 	bill_verify_value = 0;
+// 	flag_bill_verify = false;
+// 	return value;
+// }
 
-uint16_t ARDUINO_CCTALK::readBillAvailable(void)
-{
-	uint16_t value = 0;
-	if (bill_verify_value)
-		value = bill_verify_value;
-	bill_verify_value = 0;
-	flag_bill_verify = false;
-	return value;
-}
+// bool ARDUINO_CCTALK::billAccepted(void)
+// {
+// 	return flag_bill_accepted;
+// }
 
-bool ARDUINO_CCTALK::billAccepted(void)
-{
-	return flag_bill_accepted;
-}
-
-uint16_t ARDUINO_CCTALK::readBillAccepted(void)
-{
-	uint16_t value = 0;
-	if (bill_accepted_value)
-		value = bill_accepted_value;
-	bill_accepted_value = 0;
-	flag_bill_accepted = false;
-	return value;
-}
+// uint16_t ARDUINO_CCTALK::readBillAccepted(void)
+// {
+// 	uint16_t value = 0;
+// 	if (bill_accepted_value)
+// 		value = bill_accepted_value;
+// 	bill_accepted_value = 0;
+// 	flag_bill_accepted = false;
+// 	return value;
+// }
