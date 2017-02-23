@@ -238,17 +238,16 @@ bool ARDUINO_CCTALK_DEVICE::billInit(void)
 
 bool ARDUINO_CCTALK_DEVICE::billCheckReady(void)
 {
-	if (ccTalk.resetDevice(ccTalk_ADDR_BILL))
+	if (ccTalk.selfCheck(ccTalk_ADDR_BILL))
 	{
 		// int8_t _last_bill_state = bill_state;
 		if (bill_state == -1)
 			debug("BillAcc. Connection >> OK");
-		delay(200);
-		ccTalk.selfCheck(ccTalk_ADDR_BILL);
+		// delay(200);
+		// ccTalk.selfCheck(ccTalk_ADDR_BILL);
 		delay(200);
 		bill_state = ccTalk.getFaultCode();
-		if (bill_state == 0)
-		{
+		if (bill_state == 0){
 			//			if (_last_coin_state == -1) {
 			ccTalk.setUnInhibit(ccTalk_ADDR_BILL);
 			billEnable();
@@ -346,24 +345,33 @@ void ARDUINO_CCTALK_DEVICE::billPwrPinDefine(uint8_t _pin)
 
 void ARDUINO_CCTALK_DEVICE::billReadEvent(void)
 {
-	// int8_t _value = 0;
+	int16_t _value = 0;
 	if (bill_state == 0 && flag_bill_enable)
 	{
 		read_bill_event_interval++;
 		if (read_bill_event_interval >= 4)
 		{
 			if (ccTalk.readEvent(ccTalk_ADDR_BILL)) {
-				ccTalk.checkBuffBill();
-
-				if (ccTalk.checkBuffBill() == -1) {
-					bill_error_cnt++;
-					if (bill_error_cnt >= 5) {
-						billDisable();
-						return;
+				_value = ccTalk.checkBuffBill();
+				if (_value > 0){
+					debug("#A1");
+					if(ccTalk.billSorter() == 0){//Bill Accepted
+						debug("#A2");
+						bill_accepted_value = _value;
 					}
-					billCheckReady();
+					else if(ccTalk.billSorter() == 1){//Bill Available
+						debug("#A3");
+						bill_available_value = _value;
+					}
 				}
-
+				else if (_value == -1){//bill have error event
+					// bill_error_cnt++;
+					// if (bill_error_cnt >= 5) {
+					// 	billDisable();
+					// 	return;
+					// }
+					// billCheckReady();
+				}
 				read_bill_event_interval = 0;
 			}
 			else {
@@ -386,9 +394,18 @@ bool ARDUINO_CCTALK_DEVICE::billRealTimeStateCheck(void)
 	return 1;
 }
 
-bool ARDUINO_CCTALK_DEVICE::billIsVerfied(void)
+int16_t ARDUINO_CCTALK_DEVICE::billValue(void)
 {
-	return ccTalk.billAvailable();
+	int16_t _value = 0;
+	if(bill_available_value > 0){
+		_value = bill_available_value;
+		bill_available_value = 0;
+	}
+	else if(bill_accepted_value > 0){
+		_value = bill_accepted_value;
+		bill_accepted_value = 0;
+	}
+	return _value;
 }
 
 int8_t ARDUINO_CCTALK_DEVICE::billState(void)
@@ -399,4 +416,14 @@ int8_t ARDUINO_CCTALK_DEVICE::billState(void)
 bool ARDUINO_CCTALK_DEVICE::billIsEnable(void)
 {
 	return flag_bill_enable;
+}
+
+void ARDUINO_CCTALK_DEVICE::billAccept(void)
+{
+	ccTalk.routeBill(ccTalk_ADDR_BILL,true);
+}
+
+void ARDUINO_CCTALK_DEVICE::billReject(void)
+{
+	ccTalk.routeBill(ccTalk_ADDR_BILL,false);
 }
