@@ -47,6 +47,7 @@ typedef enum
 	ccTalk_CMD_READ_COIN_EVENT = 229,
 	ccTalk_CMD_SET_MASTER = 228,
 	ccTalk_CMD_READ_BILL_EVENT = 159,
+	ccTalk_CMD_ROUTE_BILL = 154,
 	ccTalk_CMD_NAK_MESSAGE = 5,
 	ccTalk_CMD_RESET_MACHINE = 1,
 	ccTalk_CMD_RETURN_MESSAGE = 0
@@ -79,7 +80,6 @@ private:
 	//------------------------------------//
 
 	ccTalk_simple_packet_t ccTalkPacket;
-
 	/*
 	const unsigned char simplePoll[5]		= {0x02,0x00,0x01,0xFE,0xFF};
 	const unsigned char resetCoin[5]		= {0x02,0x00,0x01,0x01,0xFC};
@@ -100,18 +100,21 @@ private:
 	uint8_t event_bill = 0;
 	uint8_t error_coin_cnt = 0;
 	uint8_t error_bill_cnt = 0;
+	uint8_t bill_sorter = 255;
 
 	int8_t error_fault = 0;
-
-	bool flag_bill_verify = false;
-	bool flag_bill_accepted = false;
-	uint16_t bill_accepted_value = 0;
-	uint16_t bill_verify_value = 0;
 
 	void debug(String data);
 	void timeoutReset(void);
 	bool timeoutCheck(uint32_t _time);
 
+	//Coin Acceptor
+	int16_t checkMicroSPCatCoinValue(uint8_t  cat_no);
+
+	//Bill Acceptor
+	// uint16_t iTLBV20BillVerifyValue(uint8_t  ch);
+	// uint16_t iTLBV20BillAcceptedValue(uint8_t _ch);
+	int16_t checkBV20ChanelValue(uint8_t _ch,uint8_t _sorter);
 public:
 	ARDUINO_CCTALK();
 	~ARDUINO_CCTALK();
@@ -129,6 +132,7 @@ public:
 	bool setUnInhibit(ccTalkAddr_t _slaveAddr);
 	bool setMaster(ccTalkAddr_t _slaveAddr, bool _value);
 	bool readEvent(ccTalkAddr_t _slaveAddr);
+	bool routeBill(ccTalkAddr_t _slaveAddr, bool _value);
 
 	int8_t getFaultCode(void);
 	int16_t checkBuffCoin(void);
@@ -136,18 +140,11 @@ public:
 	uint8_t addCheckSum(uint8_t raw);
 	uint8_t receiveFuaultData(void);
 
-	int16_t checkMicroSPCatCoinValue(uint8_t  cat_no);
-
 	void clrReadBuffer();
 
 	//Bill Acceptor
-	uint16_t iTLBV20BillVerifyValue(uint8_t  ch);
-	uint16_t iTLBV20BillAcceptedValue(uint8_t _ch);
-	bool billAvailable(void);
-	uint16_t readBillAvailable(void);
-	bool billAccepted(void);
-	uint16_t readBillAccepted(void);
-	uint8_t checkBuffBill(void);
+	int16_t checkBuffBill(void);
+	inline uint8_t billSorter(void) {return bill_sorter;}
 };
 
 #endif //_ARDUINO_CCTALK_h
