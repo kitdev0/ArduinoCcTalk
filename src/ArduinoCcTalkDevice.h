@@ -33,60 +33,67 @@ class ARDUINO_CCTALK_DEVICE
 {
  private:
    ARDUINO_DEBUG *logDebug;
-	 ARDUINO_TIMEOUT	billTimeout;
+   ARDUINO_TIMEOUT	billTimeout;
    ARDUINO_TIMEOUT  coinTimeout;
 
-	 bool coin_acc_pwr_state = LOW;
-	 bool bill_acc_pwr_state = LOW;
+   bool coin_acc_pwr_state = LOW;
+   bool bill_acc_pwr_state = LOW;
 
-	 volatile int16_t coin_value = 0;
-	 volatile int16_t bill_value = 0;
+   volatile int16_t coin_value = 0;
+   volatile int16_t bill_value = 0;
 
-	 int8_t bill_error_cnt = 0;
-	 int8_t coin_state = 0;
-	 int8_t last_coin_state = -2;
+   int8_t bill_error_cnt = 0;
+   int8_t coin_state = 0;
+   int8_t last_coin_state = -2;
 
-	 int8_t bill_state = 0;
-	 int8_t last_bill_state = -2;
+   int8_t bill_state = 0;
+   int8_t last_bill_state = -2;
 
-	 uint8_t coin_acc_pwr_pin = _PIN_COIN_ACC_PWR;
-	 uint8_t bill_acc_pwr_pin = _PIN_BILL_ACC_PWR;
-	 uint8_t read_coin_event_interval = 0;
-	 uint8_t read_bill_event_interval = 0;
+   uint8_t coin_acc_pwr_pin = _PIN_COIN_ACC_PWR;
+   uint8_t bill_acc_pwr_pin = _PIN_BILL_ACC_PWR;
+   uint8_t read_coin_event_interval = 0;
+   uint8_t read_bill_event_interval = 0;
 
-	 bool flag_coin_enable = false;
-	 bool flag_bill_enable = false;
-	 void debug(String data);
+   bool flag_coin_enable = false;
+   bool flag_bill_enable = false;
 
- public:
-	 ARDUINO_CCTALK_DEVICE();
-	 ~ARDUINO_CCTALK_DEVICE();
-	 void portInit(HardwareSerial *_serial);
-	 bool coinInit(void);
-	 bool coinCheckReady(void);
-	 void coinDisable(void);
-	 void coinEnable(void);
-	 void coinPwrSet(bool _state);
-	 void coinPwrPinDefine(uint8_t _pin);
-	 void coinReadEvent(void);
-	 bool coinRealTimeStateCheck(void);
-	 int16_t coinGetValue(void);
-	 int8_t coinState(void);
-	 bool coinIsEnable(void);
+   int16_t bill_accepted_value = 0;
+   int16_t bill_available_value = 0;
+
+   void debug(String data);
+
+public:
+    ARDUINO_CCTALK_DEVICE();
+    ~ARDUINO_CCTALK_DEVICE();
+    void portInit(HardwareSerial *_serial);
+    bool coinInit(void);
+    bool coinCheckReady(void);
+    void coinDisable(void);
+    void coinEnable(void);
+    void coinPwrSet(bool _state);
+    void coinPwrPinDefine(uint8_t _pin);
+    void coinReadEvent(void);
+    bool coinRealTimeStateCheck(void);
+    int16_t coinGetValue(void);
+    int8_t coinState(void);
+    bool coinIsEnable(void);
 
 
-	 bool billInit(void);
-	 bool billCheckReady(void);
-	 void billDisable(void);
-	 void billEnable(void);
-	 void billPwrSet(bool _value);
-	 void billPwrPinDefine(uint8_t _pin);
-	 void billReadEvent(void);
-	 bool billRealTimeStateCheck(void);
-   bool billIsVerfied(void);
-	 int16_t billGetValue(void);
-	 int8_t billState(void);
-	 bool billIsEnable(void);
+    bool billInit(void);
+    bool billCheckReady(void);
+    void billDisable(void);
+    void billEnable(void);
+    void billPwrSet(bool _value);
+    void billPwrPinDefine(uint8_t _pin);
+    void billReadEvent(void);
+    bool billRealTimeStateCheck(void);
+    inline int16_t billIsAvailable(void){return bill_available_value;}
+    inline int16_t billIsAccepted(void){return bill_accepted_value;}
+    int16_t billValue(void);
+    int8_t billState(void);
+    bool billIsEnable(void);
+    void billAccept(void);
+    void billReject(void);
 
 };
 
