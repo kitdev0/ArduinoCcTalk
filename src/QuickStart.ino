@@ -2,8 +2,8 @@
 #include "ArduinoDebug.h"
 
 //Define Validator Power Pin
-#define _PIN_COIN_ACC_PWR	9
-#define _PIN_BILL_ACC_PWR	8
+#define _PIN_COIN_ACC_PWR	42//9//42
+#define _PIN_BILL_ACC_PWR	40//8//40
 
 #include "ArduinoCcTalkDevice.h"
 
@@ -13,7 +13,7 @@
 //#define _MAIN_DEBUG _DEBUG_WRITE_ONLY
 //#define _MAIN_DEBUG _DEBUG_SAY_AND_WRITE
 
-ARDUINO_DEBUG						logDebug("MAIN");
+ARDUINO_DEBUG				logDebug("MAIN");
 ARDUINO_CCTALK_DEVICE		ccTalkDevice;
 
 ///
@@ -44,8 +44,8 @@ void setup()
 {
 	logDebug.init();
 
-	debug(F("-----------------------------------------"));
-	debug(F("## ArduinoCcTalkLib - Example >> Start..."));
+	debug(F("------------------------------------------"));
+	debug(F("##  ArduinoCcTalkLib - Example >> Start..."));
 
 	ccTalkDevice.portInit(&Serial3); //Init. Serial port for ccTalk Port.
 	ccTalkDevice.billPwrPinDefine(_PIN_BILL_ACC_PWR); delay(500);
@@ -61,6 +61,8 @@ void setup()
 void loop()
 {
 	timerTask();
+
+	//Coin Acceptor Segment
 	readAcceptCoinValue();
 	ccTalkDevice.coinRealTimeStateCheck();
 	if (ccTalkDevice.coinState() != 0)//if coin acceptor is not raedy
@@ -82,6 +84,7 @@ void loop()
 	}
 
 
+	//Bill Acceptor Segment
 	readAcceptBillValue();
 	ccTalkDevice.billRealTimeStateCheck();
 	if (ccTalkDevice.billState() != 0)//if bill acceptor is not ready
@@ -115,19 +118,21 @@ void readAcceptCoinValue()
 
 void readAcceptBillValue()
 {
-	// if (ccTalkDevice.billIsVerfied()) {
-	// 	int16_t _value = ccTalkDevice.billValue();
-	// 	//total_bill_value += _value;
-	// 	debug("Bill verify value = " + String(_value));
-	// 	//debug("Total Bill value = " + String(total_bill_value));
-	// }
-	//
-	// if (ccTalkDevice.billIsReceived()) {
-	// 	int16_t _value = ccTalkDevice.billValue();
-	// 	total_bill_value += _value;
-	// 	debug("Bill received value = " + String(_value));
-	// 	debug("Total Bill value = " + String(total_bill_value));
-	// }
+	if (ccTalkDevice.billIsAvailable()) {
+		int16_t _value = ccTalkDevice.billValue();
+		//total_bill_value += _value;
+		debug("Bill verify value = " + String(_value));
+		ccTalkDevice.billAccept();
+		// ccTalkDevice.
+		//debug("Total Bill value = " + String(total_bill_value));
+	}
+
+	if (ccTalkDevice.billIsAccepted()) {
+		int16_t _value = ccTalkDevice.billValue();
+		total_bill_value += _value;
+		debug("Bill received value = " + String(_value));
+		debug("Total Bill value = " + String(total_bill_value));
+	}
 }
 
 //////////////////////////////////////////////////
