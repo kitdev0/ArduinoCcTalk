@@ -138,15 +138,17 @@ bool ARDUINO_CCTALK::sendCcTalkSimplePacket(void)
 //	}
 //}
 
-bool ARDUINO_CCTALK::clrRepeatData(uint8_t _numData)
+bool ARDUINO_CCTALK::clrRepeatData(uint8_t _numData, bool _db)
 {
+	String _str = "";
 	timeoutReset();
 	while (_numData)
 	{
 		if(serial_port->available())
 		{
-			serial_port->read();
-			//debug("#A >> " + String(c,DEC));
+			uint8_t c = serial_port->read();
+			if(_db)
+				_str += String(c,DEC) + " ";
 			_numData--;
 			timeoutReset();
 		}
@@ -155,6 +157,8 @@ bool ARDUINO_CCTALK::clrRepeatData(uint8_t _numData)
 			return 0;
 		}
 	}
+	if(_db)
+		debug("#clrRepeat >> " + _str);
 	return 1;
 }
 
@@ -181,6 +185,7 @@ bool ARDUINO_CCTALK::checkAck(void)
 bool ARDUINO_CCTALK::receiveACKData(void)
 {
 	int i = 0;
+	String _str = "";
 	// int p = 0;
 	// char _str[64];
 //	debug("receiveACKData");
@@ -190,9 +195,11 @@ bool ARDUINO_CCTALK::receiveACKData(void)
 		for (; serial_port->available() && i < 5;)
 		{
 			uint8_t c = serial_port->read();
-			//debug("#B >> " + String(c, DEC));
+			_str += String(c,DEC) + " ";
 			readACK[i] = c;
 			i++;
+			// if(i == 5)
+			// 	debug("#ACKData >> " + _str);//test
 			timeoutReset();
 		}
 		if (timeoutCheck(_RECEIVE_DATA_TIME_OUT)) {
@@ -200,6 +207,8 @@ bool ARDUINO_CCTALK::receiveACKData(void)
 			return 0;
 		}
 	}
+
+	debug("#ACKData >> " + _str);//test
 
 	if (i == 5) {
 		if (checkAck())
@@ -249,6 +258,7 @@ bool ARDUINO_CCTALK::checkFault(void)
 uint8_t ARDUINO_CCTALK::receiveFuaultData(void)
 {
 	int i = 0;
+	String _str = "";
 	// int p = 0;
 	// uint8_t _str[64];
 	timeoutReset();
@@ -257,7 +267,7 @@ uint8_t ARDUINO_CCTALK::receiveFuaultData(void)
 		for (; serial_port->available() && i < 6;)
 		{
 			uint8_t c = serial_port->read();
-			//debug("# >> " + String(c, DEC));
+			_str += String(c, DEC) + " ";
 			readFault[i] = c;
 			i++;
 			timeoutReset();
@@ -267,6 +277,7 @@ uint8_t ARDUINO_CCTALK::receiveFuaultData(void)
 			return 0;
 		}
 	}
+	debug("receiveFuaultData >> " + _str);
 	if (i == 6) {
 		return checkFault();
 	}
@@ -281,6 +292,7 @@ int8_t ARDUINO_CCTALK::getFaultCode(void)
 bool ARDUINO_CCTALK::receiveEventData(ccTalkAddr_t _slave)
 {
 	int i = 0;
+	String _str = "";
 	// int p = 0;
 	// uint8_t _str[64];
 	timeoutReset();
@@ -289,7 +301,12 @@ bool ARDUINO_CCTALK::receiveEventData(ccTalkAddr_t _slave)
 		for (; serial_port->available() && i < 16;)
 		{
 			uint8_t c = serial_port->read();
-			//debug("# >> " + String(c, DEC));
+			_str += String(c,DEC) + " ";
+
+			// if(i == 15)
+			// 	debug("#coin buff >> " + _str);
+
+			// debug("# >> " + String(c, DEC));
 			if (_slave == ccTalk_ADDR_COIN)
 				readBuff_Coin[i] = c;
 			if (_slave == ccTalk_ADDR_BILL)
@@ -299,6 +316,7 @@ bool ARDUINO_CCTALK::receiveEventData(ccTalkAddr_t _slave)
 		}
 		if (timeoutCheck(_RECEIVE_DATA_TIME_OUT)) {
 			debug("!!Receive Event Data - Timeout!!\r\n");
+			// debug("## i = " + String(i) + "\r\n\r\n");
 			return 0;
 		}
 	}
@@ -398,7 +416,7 @@ bool ARDUINO_CCTALK::simplePoll(ccTalkAddr_t _slaveAddr)
 	sendCcTalkSimplePacket();
 
 	//wait to data received
-	if (clrRepeatData(5))
+	if (clrRepeatData(5,true))
 	{
 		if (receiveACKData()) {
 			//delay_1ms(50);
@@ -411,6 +429,7 @@ bool ARDUINO_CCTALK::simplePoll(ccTalkAddr_t _slaveAddr)
 
 bool ARDUINO_CCTALK::resetDevice(ccTalkAddr_t _slaveAddr)
 {
+	debug("Reset Device...");
 	ccTalkPacket.SlaveAddr = _slaveAddr;
 	ccTalkPacket.NumData = 0;
 	ccTalkPacket.MasterAddr = ccTalk_ADDR_MASTER;
@@ -419,12 +438,18 @@ bool ARDUINO_CCTALK::resetDevice(ccTalkAddr_t _slaveAddr)
 	sendCcTalkSimplePacket();
 
 	//wait to data received
-	if (clrRepeatData(5))
+	if (clrRepeatData(5,true))
 	{
 		if (receiveACKData()) {
 			//delay_1ms(50);
 			return 1;
 		}
+		else{
+			debug("Not ACK respose");
+		}
+	}
+	else{
+		debug("Not data Repeat");
 	}
 	//delay_1ms(50);
 	return 0;
@@ -440,7 +465,7 @@ bool ARDUINO_CCTALK::selfCheck(ccTalkAddr_t _slaveAddr)
 	sendCcTalkSimplePacket();
 
 	//wait to data received
-	if (clrRepeatData(5))
+	if (clrRepeatData(5,true))
 	{
 		if (receiveFuaultData()) {
 			//delay_1ms(50);
@@ -472,7 +497,7 @@ bool ARDUINO_CCTALK::setUnInhibit(ccTalkAddr_t _slaveAddr)
 	sendCcTalkSimplePacket();
 
 	//wait to data received
-	if (clrRepeatData(7))
+	if (clrRepeatData(7,true))
 	{
 		if (receiveACKData()) {
 			//delay_1ms(50);
@@ -503,7 +528,7 @@ bool ARDUINO_CCTALK::setMaster(ccTalkAddr_t _slaveAddr, bool _value)
 	sendCcTalkSimplePacket();
 
 	//wait to data received
-	if (clrRepeatData(6))
+	if (clrRepeatData(6,true))
 	{
 		if (receiveACKData()) {
 			//delay_1ms(50);
@@ -529,7 +554,7 @@ bool ARDUINO_CCTALK::readEvent(ccTalkAddr_t _slaveAddr)
 	sendCcTalkSimplePacket();
 
 	flag_clr_repeat_data = 1;
-	if (clrRepeatData(5))
+	if (clrRepeatData(5,false))
 	{
 		if (receiveEventData(_slaveAddr)) {
 			return 1;
@@ -558,7 +583,7 @@ bool ARDUINO_CCTALK::routeBill(ccTalkAddr_t _slaveAddr, bool _value)
 	sendCcTalkSimplePacket();
 
 	//wait to data received
-	if (clrRepeatData(6))
+	if (clrRepeatData(6,false))
 	{
 		if (receiveACKData()) {
 			//delay_1ms(50);

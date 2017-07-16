@@ -120,7 +120,7 @@ public:
 	~ARDUINO_CCTALK();
 	void init(HardwareSerial *_port);
 	bool sendCcTalkSimplePacket(void);
-	bool clrRepeatData(uint8_t _numData);
+	bool clrRepeatData(uint8_t _numData, bool _db);
 	bool checkAck(void);
 	bool receiveACKData(void);
 	bool checkFault(void);

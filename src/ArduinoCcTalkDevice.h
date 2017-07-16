@@ -54,6 +54,8 @@ class ARDUINO_CCTALK_DEVICE
    uint8_t read_coin_event_interval = 0;
    uint8_t read_bill_event_interval = 0;
 
+   uint8_t read_event_timeout_cnt = 0;
+
    bool flag_coin_enable = false;
    bool flag_bill_enable = false;
 

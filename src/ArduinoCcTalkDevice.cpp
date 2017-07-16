@@ -49,6 +49,8 @@ bool ARDUINO_CCTALK_DEVICE::coinInit(void)
 	//delay(_delay + 1000);
 
 	coin_state = -1;
+	flag_coin_enable = true;
+
 	if (!coinCheckReady())
 		return 0;
 	else
@@ -73,7 +75,10 @@ bool ARDUINO_CCTALK_DEVICE::coinCheckReady(void)
 		{
 //			if (_last_coin_state == -1) {
 				ccTalk.setUnInhibit(ccTalk_ADDR_COIN);
-				coinEnable();
+				if(flag_coin_enable)
+					coinEnable();
+				else
+					coinDisable();
 //			}
 		}
 		else if (coin_state > 0) {
@@ -133,8 +138,10 @@ void ARDUINO_CCTALK_DEVICE::coinEnable(void)
 		return;
 	if (ccTalk.setMaster(ccTalk_ADDR_COIN, 1))
 		flag_coin_enable = true;
-	else
+	else{
 		flag_coin_enable = false;
+		coinCheckReady();
+	}
 }
 
 void ARDUINO_CCTALK_DEVICE::coinPwrSet(bool _value)
@@ -176,15 +183,37 @@ void ARDUINO_CCTALK_DEVICE::coinReadEvent(void)
 		{
 			if (ccTalk.readEvent(ccTalk_ADDR_COIN)) {
 				_value = ccTalk.checkBuffCoin();
-				if (_value != -1)
+				if (_value != -1){
 					coin_value += _value;
-				else
-					coinCheckReady();
-				read_coin_event_interval = 0;
+					if(read_event_timeout_cnt > 0){
+						debug(" #AB");
+						coinEnable();
+						read_event_timeout_cnt = 0;
+					}
+				}
+				else{
+					debug(">> #1:read_event_timeout_cnt = " + String(read_event_timeout_cnt));
+					read_event_timeout_cnt++;
+					if(read_event_timeout_cnt > 10){
+						coinDisable();
+						flag_coin_enable = true;
+						coinCheckReady();
+						read_event_timeout_cnt = 0;
+					}
+				}
+
 			}
 			else {
-				coinCheckReady();
+				debug(">> #2:read_event_timeout_cnt = " + String(read_event_timeout_cnt));
+				read_event_timeout_cnt++;
+				if(read_event_timeout_cnt > 10){
+					coinDisable();
+					flag_coin_enable = true;
+					coinCheckReady();
+					read_event_timeout_cnt = 0;
+				}
 			}
+			read_coin_event_interval = 0;
 		}
 	}
 }
@@ -354,13 +383,13 @@ void ARDUINO_CCTALK_DEVICE::billReadEvent(void)
 			if (ccTalk.readEvent(ccTalk_ADDR_BILL)) {
 				_value = ccTalk.checkBuffBill();
 				if (_value > 0){
-					debug("#A1");
+					// debug("#A1");
 					if(ccTalk.billSorter() == 0){//Bill Accepted
-						debug("#A2");
+						// debug("#A2");
 						bill_accepted_value = _value;
 					}
 					else if(ccTalk.billSorter() == 1){//Bill Available
-						debug("#A3");
+						// debug("#A3");
 						bill_available_value = _value;
 					}
 				}
