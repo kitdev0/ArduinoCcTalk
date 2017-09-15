@@ -65,7 +65,7 @@ void loop()
 	//Coin Acceptor Segment
 	readAcceptCoinValue();
 	ccTalkDevice.coinRealTimeStateCheck();
-	if (ccTalkDevice.coinState() != 0)//if coin acceptor is not raedy
+	if (ccTalkDevice.coinState() != 0)//if coin acceptor is not ready
 	{
 		int8_t _error_code = ccTalkDevice.coinState();
 		if(_error_code != last_coin_acc_error_code){
