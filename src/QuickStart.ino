@@ -2,8 +2,8 @@
 #include "ArduinoDebug.h"
 
 //Define Validator Power Pin
-#define _PIN_COIN_ACC_PWR	42//9//42
-#define _PIN_BILL_ACC_PWR	40//8//40
+#define _PIN_COIN_ACC_PWR	10//9//42
+#define _PIN_BILL_ACC_PWR	9//8//40
 
 #include "ArduinoCcTalkDevice.h"
 
@@ -47,7 +47,7 @@ void setup()
 	debug(F("------------------------------------------"));
 	debug(F("##  ArduinoCcTalkLib - Example >> Start..."));
 
-	ccTalkDevice.portInit(&Serial3); //Init. Serial port for ccTalk Port.
+	ccTalkDevice.portInit(&Serial1); //Init. Serial port for ccTalk Port.
 	ccTalkDevice.billPwrPinDefine(_PIN_BILL_ACC_PWR); delay(500);
 	ccTalkDevice.coinPwrPinDefine(_PIN_COIN_ACC_PWR); delay(500);
 	ccTalkDevice.billPwrSet(HIGH); delay(2000);
