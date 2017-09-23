@@ -1,4 +1,9 @@
 #include <TimerOne.h>
+
+
+#define _LOG_DEBUG_SERIAL_PORT Serial //Serial
+#define _LOG_DEBUG_SERIAL_BAUD 115200
+
 #include "ArduinoDebug.h"
 
 //Define Validator Power Pin
@@ -6,8 +11,6 @@
 #define _PIN_BILL_ACC_PWR	9//8//40
 
 #include "ArduinoCcTalkDevice.h"
-
-#define _CONSOLE_BAUDRATE_DEFINE	115200
 
 #define _MAIN_DEBUG _DEBUG_SAY_ONLY
 //#define _MAIN_DEBUG _DEBUG_WRITE_ONLY

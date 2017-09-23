@@ -785,10 +785,10 @@ int16_t ARDUINO_CCTALK::checkBV20ChanelValue(uint8_t _ch,uint8_t _sorter)
 		break;
 	case 5:
 		if(_sorter == 1)
-			debug("billAcc >> Verify 500BTH.");
+			debug("billAcc >> Verify 1000BTH.");
 		else if(_sorter == 0)
-			debug("billAcc >> Received - 500BAHT.");
-		_value = 500;
+			debug("billAcc >> Received - 1000BAHT.");
+		_value = 1000;
 		break;
 	case 6:
 		if(_sorter == 1)
